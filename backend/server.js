@@ -18,18 +18,9 @@ app.use(helmet())
 app.use(cors({ origin: ALLOWED_ORIGIN, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }))
 app.use(express.json())
 
-// Middleware de validação de Origin para rotas de mutação
-function checkOrigin(req, res, next) {
-  const origin = req.headers.origin || req.headers.referer || ''
-  if (!origin.startsWith(ALLOWED_ORIGIN)) {
-    return res.status(403).json({ error: 'Origem não permitida.' })
-  }
-  next()
-}
-
 // POST /appointments — Cria um novo agendamento
 // Verifica se o horário já está ocupado antes de salvar
-app.post('/appointments', checkOrigin, async (req, res) => {
+app.post('/appointments', async (req, res) => {
   const { clientName, service, price, date, time } = req.body
   try {
     const existing = await prisma.appointment.findFirst({ where: { date, time } })
@@ -74,7 +65,7 @@ app.get('/appointments/taken', async (req, res) => {
 })
 
 // PATCH /appointments/:id/complete — Marca um agendamento como concluído
-app.patch('/appointments/:id/complete', checkOrigin, async (req, res) => {
+app.patch('/appointments/:id/complete', async (req, res) => {
   try {
     const appointment = await prisma.appointment.update({
       where: { id: Number(req.params.id) },
@@ -88,7 +79,7 @@ app.patch('/appointments/:id/complete', checkOrigin, async (req, res) => {
 })
 
 // DELETE /appointments/:id — Remove um agendamento permanentemente
-app.delete('/appointments/:id', checkOrigin, async (req, res) => {
+app.delete('/appointments/:id', async (req, res) => {
   try {
     await prisma.appointment.delete({ where: { id: Number(req.params.id) } })
     res.json({ success: true })
