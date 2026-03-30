@@ -1,3 +1,4 @@
+// Carrega as variáveis de ambiente do arquivo .env
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
@@ -6,17 +7,25 @@ const { createClient } = require('@supabase/supabase-js')
 
 const app = express()
 
+// Origem permitida para requisições CORS (frontend no Vercel)
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173'
+
+// Inicializa o cliente Supabase com URL e chave pública via variáveis de ambiente
+// Usa HTTP/HTTPS internamente, evitando problemas de IPv6 no Render
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
 
+// Helmet adiciona headers de segurança HTTP (XSS, clickjacking, etc.)
 app.use(helmet())
+// CORS restrito ao domínio do frontend
 app.use(cors({ origin: ALLOWED_ORIGIN, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }))
 app.use(express.json())
 
 // POST /appointments — Cria um novo agendamento
+// Verifica se o horário já está ocupado antes de salvar
 app.post('/appointments', async (req, res) => {
   const { clientName, service, price, date, time } = req.body
   try {
+    // Verifica conflito de horário na mesma data
     const { data: existing } = await supabase
       .from('Appointment')
       .select('id')
@@ -37,7 +46,7 @@ app.post('/appointments', async (req, res) => {
   }
 })
 
-// GET /appointments — Lista todos os agendamentos
+// GET /appointments — Lista todos os agendamentos ordenados por data e horário
 app.get('/appointments', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -53,7 +62,8 @@ app.get('/appointments', async (req, res) => {
   }
 })
 
-// GET /appointments/taken — Retorna horários ocupados de uma data
+// GET /appointments/taken — Retorna os horários já ocupados de uma data
+// Usado pelo calendário para bloquear horários indisponíveis
 app.get('/appointments/taken', async (req, res) => {
   const { date } = req.query
   try {
@@ -69,7 +79,7 @@ app.get('/appointments/taken', async (req, res) => {
   }
 })
 
-// PATCH /appointments/:id/complete — Marca como concluído
+// PATCH /appointments/:id/complete — Marca um agendamento como concluído
 app.patch('/appointments/:id/complete', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -86,7 +96,7 @@ app.patch('/appointments/:id/complete', async (req, res) => {
   }
 })
 
-// DELETE /appointments/:id — Remove um agendamento
+// DELETE /appointments/:id — Remove um agendamento permanentemente
 app.delete('/appointments/:id', async (req, res) => {
   try {
     const { error } = await supabase
