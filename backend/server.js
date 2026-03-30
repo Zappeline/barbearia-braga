@@ -1,93 +1,99 @@
-// Carrega as variáveis de ambiente do arquivo .env
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
-const { PrismaClient } = require('@prisma/client')
-const { PrismaPg } = require('@prisma/adapter-pg')
-const { Pool } = require('pg')
+const { createClient } = require('@supabase/supabase-js')
 
 const app = express()
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173'
-
-// Força IPv4 no pool de conexões para compatibilidade com o Render
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  family: 4
-})
-const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
 
 app.use(helmet())
 app.use(cors({ origin: ALLOWED_ORIGIN, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }))
 app.use(express.json())
 
 // POST /appointments — Cria um novo agendamento
-// Verifica se o horário já está ocupado antes de salvar
 app.post('/appointments', async (req, res) => {
   const { clientName, service, price, date, time } = req.body
   try {
-    const existing = await prisma.appointment.findFirst({ where: { date, time } })
+    const { data: existing } = await supabase
+      .from('Appointment')
+      .select('id')
+      .eq('date', date)
+      .eq('time', time)
+      .single()
     if (existing) return res.status(409).json({ error: 'Horário já agendado.' })
-    const appointment = await prisma.appointment.create({
-      data: { clientName, service, price, date, time }
-    })
-    res.status(201).json(appointment)
+    const { data, error } = await supabase
+      .from('Appointment')
+      .insert([{ clientName, service, price, date, time, status: 'pendente' }])
+      .select()
+      .single()
+    if (error) throw error
+    res.status(201).json(data)
   } catch (e) {
     console.error(e)
     res.status(500).json({ error: 'Erro ao criar agendamento.' })
   }
 })
 
-// GET /appointments — Lista todos os agendamentos ordenados por data e horário
+// GET /appointments — Lista todos os agendamentos
 app.get('/appointments', async (req, res) => {
   try {
-    const appointments = await prisma.appointment.findMany({
-      orderBy: [{ date: 'asc' }, { time: 'asc' }]
-    })
-    res.json(appointments)
+    const { data, error } = await supabase
+      .from('Appointment')
+      .select('*')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true })
+    if (error) throw error
+    res.json(data)
   } catch (e) {
     console.error(e)
     res.status(500).json({ error: 'Erro ao buscar agendamentos.' })
   }
 })
 
-// GET /appointments/taken — Retorna os horários já ocupados de uma data
-// Usado pelo calendário para bloquear horários indisponíveis
+// GET /appointments/taken — Retorna horários ocupados de uma data
 app.get('/appointments/taken', async (req, res) => {
   const { date } = req.query
   try {
-    const appointments = await prisma.appointment.findMany({
-      where: { date },
-      select: { time: true }
-    })
-    res.json(appointments.map(a => a.time))
+    const { data, error } = await supabase
+      .from('Appointment')
+      .select('time')
+      .eq('date', date)
+    if (error) throw error
+    res.json(data.map(a => a.time))
   } catch (e) {
     console.error(e)
     res.status(500).json({ error: 'Erro ao buscar horários.' })
   }
 })
 
-// PATCH /appointments/:id/complete — Marca um agendamento como concluído
+// PATCH /appointments/:id/complete — Marca como concluído
 app.patch('/appointments/:id/complete', async (req, res) => {
   try {
-    const appointment = await prisma.appointment.update({
-      where: { id: Number(req.params.id) },
-      data: { status: 'concluido' }
-    })
-    res.json(appointment)
+    const { data, error } = await supabase
+      .from('Appointment')
+      .update({ status: 'concluido' })
+      .eq('id', Number(req.params.id))
+      .select()
+      .single()
+    if (error) throw error
+    res.json(data)
   } catch (e) {
     console.error(e)
     res.status(500).json({ error: 'Erro ao concluir agendamento.' })
   }
 })
 
-// DELETE /appointments/:id — Remove um agendamento permanentemente
+// DELETE /appointments/:id — Remove um agendamento
 app.delete('/appointments/:id', async (req, res) => {
   try {
-    await prisma.appointment.delete({ where: { id: Number(req.params.id) } })
+    const { error } = await supabase
+      .from('Appointment')
+      .delete()
+      .eq('id', Number(req.params.id))
+    if (error) throw error
     res.json({ success: true })
   } catch (e) {
     console.error(e)
