@@ -9,6 +9,8 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
 
   const ready = service && date && time && clientName.trim()
 
+  function handleNameChange(e) { setClientName(e.target.value) }
+
   async function handleConfirm() {
     setLoading(true)
     setError('')
@@ -60,7 +62,7 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
           <input
             type="text"
             value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
+            onChange={handleNameChange}
             placeholder="Digite seu nome"
             className="w-full bg-surface-container-low border border-outline-variant/20 rounded-lg px-4 py-2 text-sm text-on-surface placeholder:text-outline/50 focus:outline-none focus:border-primary transition-colors"
           />
