@@ -5,13 +5,19 @@ const cors = require('cors')
 const helmet = require('helmet')
 const { PrismaClient } = require('@prisma/client')
 const { PrismaPg } = require('@prisma/adapter-pg')
+const { Pool } = require('pg')
 
 const app = express()
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173'
 
-// Configura o adapter do Prisma para conectar ao PostgreSQL via Supabase
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+// Força IPv4 no pool de conexões para compatibilidade com o Render
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  family: 4
+})
+const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 app.use(helmet())
