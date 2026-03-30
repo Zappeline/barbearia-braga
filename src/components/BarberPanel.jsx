@@ -65,11 +65,23 @@ export default function BarberPanel({ onClose }) {
     }
   }
 
-  // Ordena por id (reflete a data do agendamento, mais antigo primeiro) e depois por horário
+  // Converte data em português (ex: "terça-feira, 1 de abr.") para objeto Date
+  function parseDate(dateStr) {
+    const months = { 'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9, 'nov': 10, 'dez': 11 }
+    const match = dateStr.match(/(\d+)\s+de\s+(\w+)/)
+    if (!match) return new Date(0)
+    const day = parseInt(match[1])
+    const month = months[match[2].toLowerCase().replace('.', '')]
+    const year = new Date().getFullYear()
+    return new Date(year, month, day)
+  }
+
+  // Ordena por data do agendamento e depois por horário
   const sorted = [...appointments]
     .filter(a => tab === 'pendentes' ? a.status !== 'concluido' : a.status === 'concluido')
     .sort((a, b) => {
-      if (a.date !== b.date) return a.id - b.id
+      const dateDiff = parseDate(a.date) - parseDate(b.date)
+      if (dateDiff !== 0) return dateDiff
       return a.time < b.time ? -1 : 1
     })
 
