@@ -18,12 +18,18 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
       const dateStr = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })
       await createAppointment({ clientName, service: service.title, price: service.price, date: dateStr, time })
       const msg = `Novo agendamento!%0ANome: ${clientName}%0AServiço: ${service.title}%0AData: ${dateStr}%0AHorário: ${time}%0AValor: ${service.price}`
-      window.open(`https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${msg}`, '_blank')
+      const waUrl = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${msg}`
+      const waWindow = window.open('', '_blank')
+      waWindow.location.href = waUrl
       setConfirmed(true)
       onConfirm()
       setClientName('')
     } catch (e) {
-      setError(e.message || 'Erro ao confirmar. O servidor pode estar a iniciar, tente novamente em instantes.')
+      if (e.name === 'AbortError') {
+        setError('O servidor está a iniciar, aguarde 30 segundos e tente novamente.')
+      } else {
+        setError(e.message || 'Erro ao confirmar agendamento.')
+      }
     } finally {
       setLoading(false)
     }
