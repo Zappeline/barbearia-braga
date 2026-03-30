@@ -29,7 +29,7 @@ export default function Calendar({ selectedDate, selectedTime, onDateSelect, onT
   useEffect(() => {
     if (!selectedDate) return
     const dateStr = selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })
-    getTakenTimes(dateStr).then(setTakenTimes).catch(() => setTakenTimes([]))
+    getTakenTimes(dateStr).then(data => setTakenTimes(Array.isArray(data) ? data : [])).catch(() => setTakenTimes([]))
   }, [selectedDate])
 
   // Navega para o mês anterior
