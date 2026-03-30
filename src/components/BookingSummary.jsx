@@ -23,7 +23,7 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
       onConfirm()
       setClientName('')
     } catch (e) {
-      setError(e.message)
+      setError(e.message || 'Erro ao confirmar. O servidor pode estar a iniciar, tente novamente em instantes.')
     } finally {
       setLoading(false)
     }
