@@ -24,7 +24,6 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
       setConfirmed(true)
       onConfirm()
       setClientName('')
-      setTimeout(() => window.open(url, '_blank'), 300)
     } catch (e) {
       if (e.name === 'AbortError') {
         setError('O servidor está a iniciar, aguarde 30 segundos e tente novamente.')
@@ -47,15 +46,14 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
           <p className="text-on-surface-variant text-sm mb-2">
             {clientName || 'Cliente'}, seu agendamento foi confirmado com sucesso.
           </p>
-          <p className="text-outline text-xs mb-8">Para fazer um novo agendamento, atualize a página.</p>
+          <p className="text-outline text-xs mb-8">Toque no botão abaixo para enviar a confirmação via WhatsApp.</p>
           {waUrl && (
             <a
               href={waUrl}
-              target="_blank"
               rel="noreferrer"
               className="block w-full text-center bg-green-600 text-white py-3 rounded-lg font-bold tracking-widest uppercase text-xs mb-3 active:scale-95 transition-all"
             >
-              Abrir WhatsApp
+              Confirmar seu agendamento no WhatsApp
             </a>
           )}
           <button
