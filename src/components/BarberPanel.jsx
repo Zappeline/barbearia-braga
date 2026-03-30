@@ -65,9 +65,13 @@ export default function BarberPanel({ onClose }) {
     }
   }
 
+  // Ordena por id (reflete a data do agendamento, mais antigo primeiro) e depois por horário
   const sorted = [...appointments]
     .filter(a => tab === 'pendentes' ? a.status !== 'concluido' : a.status === 'concluido')
-    .sort((a, b) => a.time < b.time ? -1 : 1)
+    .sort((a, b) => {
+      if (a.date !== b.date) return a.id - b.id
+      return a.time < b.time ? -1 : 1
+    })
 
   if (!authed) {
     return (
