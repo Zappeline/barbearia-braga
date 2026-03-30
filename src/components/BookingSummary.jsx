@@ -17,13 +17,17 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
     setError('')
     try {
       const dateStr = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })
-      await createAppointment({ clientName, service: service.title, price: service.price, date: dateStr, time })
       const msg = `Novo agendamento!%0ANome: ${clientName}%0AServiço: ${service.title}%0AData: ${dateStr}%0AHorário: ${time}%0AValor: ${service.price}`
       const url = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${msg}`
       setWaUrl(url)
+      // Abre o WhatsApp imediatamente no clique, antes do await (evita bloqueio do browser)
+      const waWindow = window.open(url, '_blank')
+      await createAppointment({ clientName, service: service.title, price: service.price, date: dateStr, time })
       setConfirmed(true)
       onConfirm()
       setClientName('')
+      // Se o browser bloqueou o popup, waWindow será null — o botão de fallback fica visível
+      if (waWindow) waWindow.focus()
     } catch (e) {
       if (e.name === 'AbortError') {
         setError('O servidor está a iniciar, aguarde 30 segundos e tente novamente.')
@@ -47,15 +51,13 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
             {clientName || 'Cliente'}, seu agendamento foi confirmado com sucesso.
           </p>
           <p className="text-outline text-xs mb-8">Toque no botão abaixo para enviar a confirmação via WhatsApp.</p>
-          {waUrl && (
-            <a
-              href={waUrl}
-              rel="noreferrer"
-              className="block w-full text-center bg-green-600 text-white py-3 rounded-lg font-bold tracking-widest uppercase text-xs mb-3 active:scale-95 transition-all"
-            >
-              Confirmar seu agendamento no WhatsApp
-            </a>
-          )}
+          <a
+            href={waUrl}
+            rel="noreferrer"
+            className="block w-full text-center bg-green-600 text-white py-3 rounded-lg font-bold tracking-widest uppercase text-xs mb-3 active:scale-95 transition-all"
+          >
+            Confirmar seu agendamento no WhatsApp
+          </a>
           <button
             onClick={() => window.location.reload()}
             className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 rounded-lg font-bold tracking-widest uppercase text-xs active:scale-95 transition-all"
