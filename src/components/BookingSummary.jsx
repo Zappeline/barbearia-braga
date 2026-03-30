@@ -19,8 +19,7 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
       await createAppointment({ clientName, service: service.title, price: service.price, date: dateStr, time })
       const msg = `Novo agendamento!%0ANome: ${clientName}%0AServiço: ${service.title}%0AData: ${dateStr}%0AHorário: ${time}%0AValor: ${service.price}`
       const waUrl = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${msg}`
-      const waWindow = window.open('', '_blank')
-      waWindow.location.href = waUrl
+      window.location.href = waUrl
       setConfirmed(true)
       onConfirm()
       setClientName('')
