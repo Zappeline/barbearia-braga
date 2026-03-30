@@ -6,6 +6,7 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [confirmed, setConfirmed] = useState(false)
+  const [waUrl, setWaUrl] = useState('')
 
   const ready = service && date && time && clientName.trim()
 
@@ -18,11 +19,12 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
       const dateStr = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })
       await createAppointment({ clientName, service: service.title, price: service.price, date: dateStr, time })
       const msg = `Novo agendamento!%0ANome: ${clientName}%0AServiço: ${service.title}%0AData: ${dateStr}%0AHorário: ${time}%0AValor: ${service.price}`
-      const waUrl = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${msg}`
-      window.location.href = waUrl
+      const url = `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${msg}`
+      setWaUrl(url)
       setConfirmed(true)
       onConfirm()
       setClientName('')
+      setTimeout(() => window.open(url, '_blank'), 300)
     } catch (e) {
       if (e.name === 'AbortError') {
         setError('O servidor está a iniciar, aguarde 30 segundos e tente novamente.')
@@ -46,6 +48,16 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
             {clientName || 'Cliente'}, seu agendamento foi confirmado com sucesso.
           </p>
           <p className="text-outline text-xs mb-8">Para fazer um novo agendamento, atualize a página.</p>
+          {waUrl && (
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full text-center bg-green-600 text-white py-3 rounded-lg font-bold tracking-widest uppercase text-xs mb-3 active:scale-95 transition-all"
+            >
+              Abrir WhatsApp
+            </a>
+          )}
           <button
             onClick={() => window.location.reload()}
             className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-3 rounded-lg font-bold tracking-widest uppercase text-xs active:scale-95 transition-all"
