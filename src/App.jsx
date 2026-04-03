@@ -26,6 +26,7 @@ export default function App() {
   // Refs para scroll automático entre etapas
   const refBarber = useRef(null)
   const refCalendar = useRef(null)
+  const refSummary = useRef(null)
 
   function scrollTo(ref) {
     setTimeout(() => {
@@ -34,6 +35,18 @@ export default function App() {
       const top = el.getBoundingClientRect().top + window.scrollY - 120
       window.scrollTo({ top, behavior: 'smooth' })
     }, 300)
+  }
+
+  // Ao selecionar data, se já tiver hora, desce para o resumo (apenas mobile)
+  function handleDateSelect(date) {
+    setSelectedDate(date)
+    if (selectedTime && window.innerWidth < 1024) scrollTo(refSummary)
+  }
+
+  // Ao selecionar hora, se já tiver data, desce para o resumo (apenas mobile)
+  function handleTimeSelect(time) {
+    setSelectedTime(time)
+    if (selectedDate && window.innerWidth < 1024) scrollTo(refSummary)
   }
 
   // Chamado após confirmação do agendamento — reseta data e horário
@@ -80,7 +93,7 @@ export default function App() {
                 <h2 className="font-headline text-2xl font-bold">Barbeiro</h2>
               </div>
               <div className="flex flex-wrap gap-12">
-                  <div className="flex flex-col items-center gap-3 cursor-pointer group" onClick={() => scrollTo(refCalendar)}>
+                <div className="flex flex-col items-center gap-3 cursor-pointer group" onClick={() => scrollTo(refCalendar)}>
                   <div className="relative w-24 h-24 rounded-full p-1 border-2 border-primary bg-surface transition-transform duration-300 group-hover:scale-110">
                     <img
                       className="w-full h-full rounded-full object-cover grayscale"
@@ -107,15 +120,15 @@ export default function App() {
               <Calendar
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
-                onDateSelect={setSelectedDate}
-                onTimeSelect={setSelectedTime}
+                onDateSelect={handleDateSelect}
+                onTimeSelect={handleTimeSelect}
               />
             </div>
 
           </div>
 
           {/* Coluna direita — Resumo do agendamento */}
-          <div className="lg:col-span-4">
+          <div ref={refSummary} className="lg:col-span-4">
             <BookingSummary
               service={selectedService}
               barber="Rodrigo Braga"
