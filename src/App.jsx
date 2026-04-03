@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Navbar from './components/Navbar'
 import ServiceCard from './components/ServiceCard'
 import Calendar from './components/Calendar'
@@ -22,6 +22,14 @@ export default function App() {
   const [selectedTime, setSelectedTime] = useState(null)
   // Controla se o painel do barbeiro está visível
   const [showPanel, setShowPanel] = useState(false)
+
+  // Refs para scroll automático entre etapas
+  const refBarber = useRef(null)
+  const refCalendar = useRef(null)
+
+  function scrollTo(ref) {
+    setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+  }
 
   // Chamado após confirmação do agendamento — reseta data e horário
   function handleConfirm() {
@@ -54,20 +62,20 @@ export default function App() {
                     key={s.id}
                     {...s}
                     selected={selectedService.id === s.id}
-                    onClick={() => setSelectedService(s)}
+                    onClick={() => { setSelectedService(s); scrollTo(refBarber) }}
                   />
                 ))}
               </div>
             </div>
 
             {/* Etapa 2 — Exibição do barbeiro disponível */}
-            <div className="space-y-8">
+            <div ref={refBarber} className="space-y-8">
               <div className="flex items-baseline gap-4">
                 <span className="font-headline text-3xl font-bold text-outline-variant/30">02</span>
                 <h2 className="font-headline text-2xl font-bold">Barbeiro</h2>
               </div>
               <div className="flex flex-wrap gap-12">
-                <div className="flex flex-col items-center gap-3 cursor-pointer group">
+                  <div className="flex flex-col items-center gap-3 cursor-pointer group" onClick={() => scrollTo(refCalendar)}>
                   <div className="relative w-24 h-24 rounded-full p-1 border-2 border-primary bg-surface transition-transform duration-300 group-hover:scale-110">
                     <img
                       className="w-full h-full rounded-full object-cover grayscale"
@@ -86,7 +94,7 @@ export default function App() {
             </div>
 
             {/* Etapa 3 — Seleção de data e horário */}
-            <div className="space-y-8">
+            <div ref={refCalendar} className="space-y-8">
               <div className="flex items-baseline gap-4">
                 <span className="font-headline text-3xl font-bold text-outline-variant/30">03</span>
                 <h2 className="font-headline text-2xl font-bold">Escolha Data e Horário</h2>
