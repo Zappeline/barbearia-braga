@@ -28,7 +28,12 @@ export default function App() {
   const refCalendar = useRef(null)
 
   function scrollTo(ref) {
-    setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    setTimeout(() => {
+      const el = ref.current
+      if (!el) return
+      const top = el.getBoundingClientRect().top + window.scrollY - 120
+      window.scrollTo({ top, behavior: 'smooth' })
+    }, 300)
   }
 
   // Chamado após confirmação do agendamento — reseta data e horário
