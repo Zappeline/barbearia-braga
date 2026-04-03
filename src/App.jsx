@@ -66,7 +66,7 @@ export default function App() {
                   <ServiceCard
                     key={s.id}
                     {...s}
-                    selected={selectedService.id === s.id}
+                    selected={selectedService?.id === s.id}
                     onClick={() => { setSelectedService(s); scrollTo(refBarber) }}
                   />
                 ))}
