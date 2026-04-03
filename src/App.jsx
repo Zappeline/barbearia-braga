@@ -14,8 +14,8 @@ const SERVICES = [
 ]
 
 export default function App() {
-  // Estado do serviço selecionado pelo cliente
-  const [selectedService, setSelectedService] = useState(SERVICES[0])
+  // Estado do serviço selecionado pelo cliente (null = nenhum selecionado)
+  const [selectedService, setSelectedService] = useState(null)
   // Estado da data selecionada no calendário
   const [selectedDate, setSelectedDate] = useState(null)
   // Estado do horário selecionado
@@ -61,7 +61,7 @@ export default function App() {
                 <span className="font-headline text-3xl font-bold text-outline-variant/30">01</span>
                 <h2 className="font-headline text-2xl font-bold">Selecionar Serviço</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {SERVICES.map((s) => (
                   <ServiceCard
                     key={s.id}

@@ -88,9 +88,9 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
         <div className="flex justify-between items-start pb-6 border-b border-outline-variant/20">
           <div>
             <p className="font-label text-[10px] text-outline uppercase tracking-widest mb-1">Serviço</p>
-            <p className="font-headline font-bold">{service.title}</p>
+            <p className="font-headline font-bold">{service?.title || '—'}</p>
           </div>
-          <span className="text-primary font-bold">{service.price}</span>
+          <span className="text-primary font-bold">{service?.price || ''}</span>
         </div>
 
         <div className="flex justify-between items-start pb-6 border-b border-outline-variant/20">
@@ -112,7 +112,7 @@ export default function BookingSummary({ service, barber, date, time, onConfirm 
       </div>
       <div className="flex justify-between items-center mb-10">
         <p className="font-headline text-lg font-bold">Total</p>
-        <p className="font-headline text-2xl font-bold text-primary">{service.price}</p>
+        <p className="font-headline text-2xl font-bold text-primary">{service?.price || '—'}</p>
       </div>
       {error && <p className="text-error text-xs mb-4 text-center">{error}</p>}
       <button
