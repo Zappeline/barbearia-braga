@@ -11,21 +11,18 @@ const app = express()
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 // Inicializa o cliente Supabase com URL e chave pública via variáveis de ambiente
-// Usa HTTP/HTTPS internamente, evitando problemas de IPv6 no Render
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
 
-// Helmet adiciona headers de segurança HTTP (XSS, clickjacking, etc.)
+// Helmet adiciona headers de segurança HTTP
 app.use(helmet())
 // CORS restrito ao domínio do frontend
 app.use(cors({ origin: ALLOWED_ORIGIN, methods: ['GET', 'POST', 'PATCH', 'DELETE'] }))
 app.use(express.json())
 
 // POST /appointments — Cria um novo agendamento
-// Verifica se o horário já está ocupado antes de salvar
 app.post('/appointments', async (req, res) => {
   const { clientName, service, price, date, time } = req.body
   try {
-    // Verifica conflito de horário na mesma data
     const { data: existing } = await supabase
       .from('Appointment')
       .select('id')
@@ -33,6 +30,7 @@ app.post('/appointments', async (req, res) => {
       .eq('time', time)
       .single()
     if (existing) return res.status(409).json({ error: 'Horário já agendado.' })
+    
     const { data, error } = await supabase
       .from('Appointment')
       .insert([{ clientName, service, price, date, time, status: 'pendente' }])
@@ -63,7 +61,6 @@ app.get('/appointments', async (req, res) => {
 })
 
 // GET /appointments/taken — Retorna os horários já ocupados de uma data
-// Usado pelo calendário para bloquear horários indisponíveis
 app.get('/appointments/taken', async (req, res) => {
   const { date } = req.query
   try {
@@ -111,4 +108,5 @@ app.delete('/appointments/:id', async (req, res) => {
   }
 })
 
-app.listen(3001, () => console.log('Servidor rodando na porta 3001'))
+// A MÁGICA ACONTECE AQUI: Exportamos o app ao invés de usar app.listen
+module.exports = app
